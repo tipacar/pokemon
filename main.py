@@ -43,6 +43,9 @@ async def info(ctx):
         await ctx.send(await pokemon.info())
     else:
         await ctx.send("Henüz bir pokémon seçmediniz.Seçmek için !go yazın")
+@bot.command()
+async def besle(ctx):
+    await ctx.send(f'Pokemonunuzu beslediniz')
 
 # Botun çalıştırılması
 bot.run(token)
