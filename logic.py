@@ -1,6 +1,9 @@
 import aiohttp  # Eşzamansız HTTP istekleri için bir kütüphane
 import random
 import asyncio
+from datetime import timedelta, datetime
+
+import time
 class Pokemon:
     pokemons = {}
     # Nesne başlatma (kurucu)
@@ -11,6 +14,7 @@ class Pokemon:
         self.hp=random.randint(50,100)
         self.power=random.randint(20,50)
         self.ability = None
+        self.last_feed_time=datetime.now()
         if pokemon_trainer not in Pokemon.pokemons:
             Pokemon.pokemons[pokemon_trainer] = self
         else:
@@ -76,32 +80,61 @@ class Pokemon:
         else:
             target.hp=0
             return f"{self.pokemon_trainer},{target.pokemon_trainer}'ı yendi!"
+
+    async def feed(self, feed_interval=20, hp_increase=10):
+        current_time = datetime.now()
+        delta_time = timedelta(seconds=feed_interval)
+        if (current_time - self.last_feed_time) > delta_time:
+            self.hp += hp_increase
+            self.last_feed_time = current_time
+            return f"Pokémon'un sağlığı geri yüklenir. Mevcut sağlık: {self.hp}"
+        else:
+            return f"Pokémonunuzu şu zaman besleyebilirsiniz: {current_time+delta_time}"
         
+
 class Wizard(Pokemon):
     async def attack(self, enemy):
         return await super().attack(enemy)
+    async def feed(self):
+        return await super().feed(feed_interval=10,hp_increase=10)
 
 
 class Fighter(Pokemon):
     async def attack(self, enemy):
         super_power = random.randint(5, 15)  
         self.power += super_power
-        sonuç = await super().attack(enemy)  
+        sonuc = await super().attack(enemy)  
         self.power -= super_power
-        return sonuç + f"\nDövüşçü Pokémon süper saldırı kullandı. Eklenen güç: {super_power}"
+        return sonuc + f"\nDövüşçü Pokémon süper saldırı kullandı. Eklenen güç: {super_power}"
+    async def feed(self):
+        return await super().feed(feed_interval=20,hp_increase=20)
             
 if __name__ == '__main__':
     async def main():
 
         wizard = Wizard("username1")
         fighter = Fighter("username2")
-
+        pokemon=Pokemon('Ege')
         print(await wizard.info())
         print()
         print(await fighter.info())
         print()
         print(await fighter.attack(wizard))
         print(await wizard.info())
-    asyncio.run(main())           
+        print(await pokemon.info())
+        print("pokemon besleme denemesi")
+        print(await pokemon.feed())
+        print(await wizard.feed())
+        print(await fighter.feed())
+        time.sleep(10)
+        print("pokemon besleme denemesi")
+        print(await pokemon.feed())
+        print(await wizard.feed())
+        print(await fighter.feed())
+        time.sleep(10)
+        print("pokemon besleme denemesi")
+        print(await pokemon.feed())
+        print(await wizard.feed())
+        print(await fighter.feed())
 
-
+    asyncio.run(main())
